@@ -1,5 +1,14 @@
 version: "3.1"
 services:
+  server:
+    build: .
+    ports:
+    - 5000:5000
+    environment:
+    - INFLUXDB_HOSTNAME=activity_influxdb_1
+    links:
+    - influxdb
+
   influxdb:
     image: influxdb:1.2-alpine
     ports:

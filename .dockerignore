@@ -1,0 +1,5 @@
+data/
+data.txt
+.git/
+.idea/
+*.pyc
