@@ -137,6 +137,7 @@ def train_classifier(measurement, classifier_name):
         parser = RequestParser()
         parser.add_argument('_sensors', type=str, required=True)
         parser.add_argument('_labels', type=str, required=True)
+        parser.add_argument('_preprocessor', type=str, required=False)
         for key, type in classifier.arguments.items():
             parser.add_argument(key, type=type)
 
@@ -154,6 +155,7 @@ def train_classifier(measurement, classifier_name):
 
         data = query_data(labels=query_labels, fields=query_fields, measurement=measurement).get_points()
         x, y = classifiers.split_x_y(data, label_key=LABEL_KEY, remove_keys=['time'])
+        x = classifiers.preprocess(x, arguments['_preprocessor'])
 
         cls = classifier.train(x=x, y=y, arguments=classifier_args)
         classifier_cache[request.full_path] = classifiers.transpile(cls)

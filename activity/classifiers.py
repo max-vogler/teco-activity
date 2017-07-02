@@ -1,7 +1,9 @@
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn_porter import Porter
+import numpy as np
 import pandas as pd
+from numpy.fft import fft
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn_porter import Porter
 
 
 class Classifier:
@@ -83,3 +85,22 @@ def split_x_y(data, label_key, remove_keys=None):
 
 def transpile(cls):
     return Porter(cls, language='js').port(class_name='Activity')
+
+
+def preprocess(data: np.ndarray, preprocessor: str) -> np.ndarray:
+    """
+    Apply a preprocessing step to data.
+
+    The preprocessor 'fft' operates on the columns (axis 0) of the given ndarray.
+    :param data: the data to be modified
+    :param preprocessor: the name of the preprocessor (available: fft)
+    :return: preprocessed data
+    """
+    if preprocessor == '' or preprocessor is None:
+        return data
+    elif preprocessor.lower() == 'fft':
+        func = fft
+    else:
+        raise Exception(f'Unknown preprocessor {preprocessor}. Available: fft.')
+
+    return np.apply_along_axis(func, axis=0, arr=data)

@@ -4,7 +4,7 @@ A web service providing an easy way to train and generate JavaScript-based machi
 
 To add a classifier for standing, walking, and cycling to a mobile HTML5 page, insert the script:
 ```html
-<script src="http://localhost:5000/measurements/devicemotion/classifiers/DecisionTreeClassifier.js?_sensors=Accelerometer-X,Accelerometer-Y,Accelerometer-Z&_labels=STILL,WALKING,CYCLING"></script>
+<script src="http://localhost:5000/measurements/devicemotion/classifiers/DecisionTreeClassifier.js?_sensors=Accelerometer-X,Accelerometer-Y,Accelerometer-Z&_labels=STILL,WALKING,CYCLING&_preprocessor=fft"></script>
 ```
 
 ## Set up
