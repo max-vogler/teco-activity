@@ -7,7 +7,7 @@ import arff
 import pandas as pd
 from influxdb import line_protocol
 
-_DEFAULT_LABEL_KEY = 'Trainingdata'
+_DEFAULT_LABEL_KEY = 'Traininglabel'
 
 
 def read_arff(filename):
