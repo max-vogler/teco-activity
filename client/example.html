@@ -1,0 +1,40 @@
+<html>
+<body>
+<h1>Initializing...</h1>
+<script src="dist/activity.js"></script>
+<script>
+  const el = document.querySelector("h1");
+  const options = {
+    server: 'http://localhost:5000',
+
+    // InfluxDB measurement name, see API endpoint /measurements
+    measurement: 'devicemotion',
+
+    // InfluxDB fields, see API endpoint /measurements/<measurement>/sensors
+    sensors: ['Accelerometer-X', 'Accelerometer-Y', 'Accelerometer-Z'],
+
+    // InfluxDB tags, see API endpoint /measurements/<measurement>/labels
+    labels: ['STILL', 'WALKING'],
+
+    // a preprocessor function (min, max, stddev, median) used to reduce a time window of sensor data
+    preprocessor: {
+      type: 'min',
+      window: 1000, // in milliseconds
+    },
+
+    //the sklearn classifier and configuration, see API endpoint /classifiers
+    classifier: {
+      type: 'DecisionTreeClassifier',
+      max_depth: 2,
+    },
+  };
+
+  function onPrediction(label) {
+    el.innerText = label;
+  }
+
+  const classifier = new Classifier(options, onPrediction);
+  classifier.startPrediction();
+</script>
+</body>
+</html>

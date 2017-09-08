@@ -2,10 +2,7 @@
 
 A web service providing an easy way to train and generate JavaScript-based machine learning classifiers.
 
-To add a classifier for standing, walking, and cycling to a mobile HTML5 page, insert the script:
-```html
-<script src="http://localhost:5000/measurements/devicemotion/classifiers/DecisionTreeClassifier.js?_sensors=Accelerometer-X,Accelerometer-Y,Accelerometer-Z&_labels=STILL,WALKING,CYCLING&_preprocessor=fft"></script>
-```
+For a usage example, see [client/example.html](client/example.html).
 
 ## Set up
 
@@ -36,6 +33,8 @@ curl -i -XPOST 'http://localhost:8086/write?db=activity' --data-binary @data.txt
 ```
 
 ## Usage
+
+For a usage example, see [client/example.html](client/example.html).
 
 **http://localhost:5000/classifiers**
 ```json

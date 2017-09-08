@@ -3,3 +3,4 @@ data.txt
 .git/
 .idea/
 *.pyc
+node_modules/
