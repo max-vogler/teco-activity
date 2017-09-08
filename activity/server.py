@@ -4,6 +4,7 @@ from os import environ
 from flask import Flask, make_response, request, jsonify
 from flask_restful.reqparse import RequestParser
 from influxdb import InfluxDBClient
+from influxdb.resultset import ResultSet
 from pylru import lrucache
 
 from activity import classifiers
@@ -25,7 +26,7 @@ client = InfluxDBClient(host=INFLUXDB_HOSTNAME,
                         database=INFLUXDB_DATABASE)
 
 
-def query_data(labels, fields='*', measurement='devicemotion', label_key=LABEL_KEY):
+def query_data(labels, fields='*', measurement='devicemotion', label_key=LABEL_KEY) -> ResultSet:
     """
     Query InfluxDB by selecting a list of fields for a list of labels in a measurement. This function roughly executes
     SELECT <fields> FROM <measurement> WHERE <label_key> IN <labels>
@@ -138,6 +139,7 @@ def train_classifier(measurement, classifier_name):
         parser.add_argument('_sensors', type=str, required=True)
         parser.add_argument('_labels', type=str, required=True)
         parser.add_argument('_preprocessor', type=str, required=False)
+        parser.add_argument('_window', type=int, required=False)
         for key, type in classifier.arguments.items():
             parser.add_argument(key, type=type)
 
@@ -154,8 +156,17 @@ def train_classifier(measurement, classifier_name):
         query_fields = arguments['_sensors'].split(',') + [LABEL_KEY]
 
         data = query_data(labels=query_labels, fields=query_fields, measurement=measurement).get_points()
-        x, y = classifiers.split_x_y(data, label_key=LABEL_KEY, remove_keys=['time'])
-        x = classifiers.preprocess(x, arguments['_preprocessor'])
+        x, y = classifiers.split_x_y(data, label_key=LABEL_KEY)
+
+        if arguments['_window'] and arguments['_preprocessor']:
+            x = classifiers.preprocess(x, arguments['_preprocessor'], arguments['_window'])
+            y = y[x.index]
+        elif arguments['_window'] or arguments['_preprocessor']:
+            raise Exception("Both _window and _preprocessor need to be specified (or left out)")
+
+        # sklearn fails if given the raw DataFrame, so use the Numpy representation
+        x = x.values
+        y = y.values
 
         cls = classifier.train(x=x, y=y, arguments=classifier_args)
         classifier_cache[request.full_path] = classifiers.transpile(cls)
@@ -163,6 +174,11 @@ def train_classifier(measurement, classifier_name):
     response = make_response(classifier_cache[request.full_path])
     response.headers['Content-Type'] = 'application/javascript'
     return response
+
+
+@app.route('/activity.js')
+def serve_javascript():
+    return app.send_static_file('client/dist/activity.js')
 
 
 if __name__ == '__main__':

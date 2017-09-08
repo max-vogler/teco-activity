@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
-from numpy.fft import fft
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn_porter import Porter
+import re
 
 
 class Classifier:
@@ -68,8 +68,8 @@ def get(classifier):
     return __CLASSIFIERS[classifier]
 
 
-def split_x_y(data, label_key, remove_keys=None):
-    df = pd.DataFrame(data)
+def split_x_y(data, label_key, time_key='time', remove_keys=None) -> (pd.DataFrame, pd.Series):
+    df = pd.DataFrame(data).set_index(time_key)
     y = df[label_key]
 
     if remove_keys is None:
@@ -80,27 +80,33 @@ def split_x_y(data, label_key, remove_keys=None):
     for key in remove_keys:
         del df[key]
 
-    return df.values, y
+    return df, y
 
 
 def transpile(cls):
     return Porter(cls, language='js').port(class_name='Activity')
 
 
-def preprocess(data: np.ndarray, preprocessor: str) -> np.ndarray:
+def preprocess(data: pd.DataFrame, preprocessor: str, window: int) -> pd.DataFrame:
     """
     Apply a preprocessing step to data.
 
     The preprocessor 'fft' operates on the columns (axis 0) of the given ndarray.
     :param data: the data to be modified
-    :param preprocessor: the name of the preprocessor (available: fft)
+    :param preprocessor: the name of the preprocessor (available:  min, max, median, stddev)
     :return: preprocessed data
     """
-    if preprocessor == '' or preprocessor is None:
-        return data
-    elif preprocessor.lower() == 'fft':
-        func = fft
-    else:
-        raise Exception(f'Unknown preprocessor {preprocessor}. Available: fft.')
+    data = data.rolling(window // 50)  # TODO replace 50ms with real interval, or resample data
 
-    return np.apply_along_axis(func, axis=0, arr=data)
+    if preprocessor == 'min':
+        data = data.min()
+    elif preprocessor == 'max':
+        data = data.max()
+    elif preprocessor == 'median':
+        data = data.median()
+    elif preprocessor == 'stddev':
+        data = data.std()
+    else:
+        raise Exception(f'Unknown preprocessor {preprocessor}. Available: min, max, median, stddev.')
+
+    return data.dropna()
